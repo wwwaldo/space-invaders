@@ -1,8 +1,80 @@
-#include <ncurses.h>
-#include <unistd.h>
+#include "game.h"
 
+// get keyboard input from the user and act accordingly.
+void user_response(WINDOW *game_scr, struct player *p){
+	int key = wgetch(game_scr);
+	switch(key){
+		case KEY_LEFT:
+			update_player(p, KEY_LEFT);
+			break;
+		case KEY_RIGHT:
+			update_player(p, KEY_RIGHT);
+			break;
+		case ' ':
+			player_shoot(p);
+		case 'q': // quit the game
+			endwin();
+			exit(0);
+		default: // Case where no input is provided
+			break;
+	}
+	return;
+}
+
+// update the score menu.
 void update_score(WINDOW *score_win, int score){
 	mvwprintw(score_win, 1, 1, "Press 'q' to quit. YOUR SCORE: %d", score);
+}
+
+// display the start menu on mywin.
+// seems to bug out when calling on game_win
+void display_start_menu(WINDOW *mywin){
+	wclear(mywin);
+	int win_y = 0; int win_x = 0;
+	getmaxyx(mywin, win_y, win_x);
+
+	char *intro_text[5] = {
+		"Space Invaders!",
+		"Author: Caroline Lin (2017)",
+		"Instructions: LEFT and RIGHT arrow keys to move.",
+		"Press SPACE to shoot. Press 'q' to quit the game.",
+		"Press SPACE to begin the game."
+	};
+
+	for (int i = 0; i < 5; i++){
+		mvwprintw(mywin, i + (win_y / 2) - 5, (win_x / 2) - 23, "%s", intro_text[i]);
+	}
+
+	touchwin(stdscr);
+	wrefresh(mywin); // paint the window
+	refresh();
+
+	nodelay(mywin, FALSE); // enable block on user input
+	int key = 0;
+	while(1){
+		key = wgetch(mywin);
+		if (key == ' '){
+			nodelay(mywin, TRUE); // disable block on user input
+			return;
+		} else if (key == 'q'){
+			endwin();
+			exit(0);
+		}
+		sleep(1); // eh?
+	}
+	assert(0); // not reachable.
+}
+
+// check for a game-over. Return TRUE if the end is near.
+bool check_game_over(struct player *p, struct fleet *aliens){
+	//TODO
+	return FALSE;
+}
+
+// display the game over menu.
+void display_game_over(WINDOW * game_win, int score){
+	//TODO
+	return;
 }
 
 
@@ -12,98 +84,68 @@ int main(){
 
 	int max_y = 0; int max_x = 0;
 	getmaxyx(stdscr, max_y, max_x); // get the max window dimensions.
-	WINDOW *score_win = derwin(stdscr, max_y / 8, max_x, 0, 0);
-	WINDOW *game_win = derwin(stdscr, (max_y / 8) * 7, max_x, 1 + (max_y / 8), 0);
+	int smaller = max_y / 8;
+	WINDOW *score_win = derwin(stdscr, smaller, max_x, 0, 0);
+
+	// warning: game_win may not correctly display for arbitrary choice
+	// of multiplier. 6 is magical here
+	WINDOW *game_win = derwin(stdscr, smaller * 6, max_x, 1 + smaller, 0);
 
 	// enable keyboard tracking
  	noecho();
 	keypad(game_win, TRUE);
 
+	display_start_menu(game_win);
+
+	// initialize the alien fleet
+	struct fleet myfleet;
+	size_t fleetsize = 20;
+	init_fleet(&myfleet, fleetsize);
+
+	// initialize the player ship
+	struct player myship;
+	init_player(&myship);
+
+	int myscore = 0;
+	int n_frames = 0;
+	// main game loop.
 	while(1){
-	clear();
-	touchwin(stdscr);
+		clear();
+		touchwin(stdscr); // ready the screen for drawing
 
-	box(score_win, '|', '-');
-	update_score(score_win, 0);
+		user_response(game_win, &myship); // check for user input
 
-	box(game_win, '*', '*');
+		myscore = myscore + update_bullet(&myship, &myfleet);
 
-	// update the game window here 
+		update_bounds(&myfleet); // this should do nothing right now
 
-	wrefresh(score_win);
+		if (n_frames >= (_INVADERS_FPS / _ALIEN_SPEED)){
+			update_fleet(&myfleet);
+			n_frames = 0;
+		}
 
-	touchwin(stdscr);
-	wrefresh(game_win);
+		if (check_game_over(&myship, &myfleet) == TRUE){
+			display_game_over(game_win, myscore);
+		} else{
+			// draw player and fleet
+			draw_player(game_win, &myship);
+			draw_fleet(game_win, &myfleet);
 
-	usleep(500000);
-}
+			box(game_win, '*', '*');
+			wrefresh(game_win);
 
-	sleep(10);
+			// update the score
+			box(score_win, '|', '-');
+			update_score(score_win, myscore);
+			wrefresh(score_win);
+
+			n_frames++;
+			usleep(1000000 / _INVADERS_FPS);
+		}
+	}
 
 
 	endwin();
 	return 0;
 
 }
-
-
-/**
-int main(){
-	initscr();
-	box(stdscr, '*', '*');
-	refresh();
-	noecho();
-	keypad(stdscr, TRUE);
-	// nodelay(stdscr, TRUE);
-
-	// okay, let's try to make a box here
-	// WINDOW *subwin(WINDOW *orig, int nlines, int ncols, int begin_y, int begin_x);
-	WINDOW *game = subwin(stdscr, 0, 0, 2, 0);
-	// clear the screen
-	mvprintw(0, 0, "Game will start in 1 seconds");
-	refresh();
-	sleep(1);
-	clear();
-
-	struct fleet myfleet;
-	size_t fleetsize = 20;
-	init_fleet(&myfleet, fleetsize);
-
-	bool quit = FALSE;
-	bool msg = FALSE;
-	int key = 0;
-	while(quit == FALSE){
-		update_bounds(&myfleet);
-
-		key = getch();
-		if (key == 'q'){
-			quit = TRUE;
-		}
-		else if (key == ' '){
-			update_fleet(&myfleet);
-		} else{
-			msg = TRUE;
-		}
-
-		clear();
-		box(stdscr, '|', '-');
-
-		touchwin(stdscr); // yay inefficiency
-		box(game, '*', '*'); // box for the game
-		wrefresh(game);
-
-		mvprintw(SCREEN_MIN_H +10, SCREEN_MIN_W, "*"); //include borders
-		mvprintw(SCREEN_MIN_H + 10, SCREEN_MAX_W, "*");
-		mvprintw(SCREEN_MIN_H - 1, 0, "leftbd: %d rightbd: %d", myfleet.left_bound, myfleet.right_bound);
-		if (msg == TRUE){
-			mvprintw(0, 0, "Invalid key");
-			msg = FALSE;
-		}
-		draw_fleet(&myfleet);
-		refresh();
-
-	}
-endwin();
-return 0;
-
-}**/

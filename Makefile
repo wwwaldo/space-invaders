@@ -4,15 +4,15 @@
 # 				$< -> just the first thing after ":"
 
 # HEADERS = classes.hpp
-HEADERS =
+HEADERS = game.h
 
-invaders: main.o
+space_invaders: ui.o invaders.o player.o $(HEADERS)
 	gcc -g -o $@ $^ -lncurses
 
 # make obj files
-%.o : %.c $HEADERS
+%.o : %.c $(HEADERS)
 	gcc -g -c $<
 
 clean:
 	rm -f *.o
-	rm -f invaders
+	rm -f space_invaders

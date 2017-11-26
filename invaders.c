@@ -1,41 +1,14 @@
-#include <ncurses.h>
-#include <stdlib.h> // for the max function. (.. oh nevermind, this is super broken apparently)
-#include <assert.h>
-#include <unistd.h>
-
-
-#define ALIEN_MAX_WIDTH 10 // please don't make this less than 1
-
-// screen attributes that should later be moved.
-#define SCREEN_MIN_W 20
-#define SCREEN_MAX_W 65
-#define SCREEN_MIN_H 10
-
-int my_max(int a, int b){
-	if (a > b) return a;
-	else return b;
-}
-
+#include "game.h" // misc game headers
 
 // voo-doo alien spaceships!
 // the number of alien ships can be specified in the call to init_fleet.
 // note that there is a "bug" where if there is only a single row of aliens
 // which is less than maxlen,
 
-struct fleet{
-	struct alien *aliens; // array to the aliens
-	int left_bound; // left bound on ships
-	int right_bound; // right bound on ships
-	size_t fleetsize; // size of this fleet
-};
-
-struct alien{
-	int x;
-	int y;
-	bool fwd; // is this alien moving rightwards?
-	bool hit; // has this alien been hit?
-	char *repr; // what's the string representation of this ship?
-};
+int my_max(int a, int b){
+	if (a > b) return a;
+	else return b;
+}
 
 // update the left and right bounds of the fleet by iterating
 // through the current ships. Call this function on each animation loop.
@@ -121,10 +94,10 @@ void update_fleet(struct fleet *fleet){
 }
 
 // draw the alien fleet. initscr should have already been called.
-void draw_fleet(struct fleet *fleet){
+void draw_fleet(WINDOW *window, struct fleet *fleet){
 	for (int i = 0; i < fleet->fleetsize; i++){
 		if (fleet->aliens[i].hit == 0){
-			mvprintw(fleet->aliens[i].y, fleet->aliens[i].x, fleet->aliens[i].repr);
+			mvwprintw(window, fleet->aliens[i].y, fleet->aliens[i].x, fleet->aliens[i].repr);
 		}
 	}
 }
@@ -157,65 +130,4 @@ void init_fleet(struct fleet *fleet, size_t fleetsize){
 	fleet->fleetsize = fleetsize;
 
 	return;
-}
-
-
-int main(){
-	initscr();
-	box(stdscr, '*', '*');
-	refresh();
-	noecho();
-	keypad(stdscr, TRUE);
-	// nodelay(stdscr, TRUE);
-
-	// okay, let's try to make a box here
-	// WINDOW *subwin(WINDOW *orig, int nlines, int ncols, int begin_y, int begin_x);
-	WINDOW *game = subwin(stdscr, 0, 0, 2, 0);
-	// clear the screen
-	mvprintw(0, 0, "Game will start in 1 seconds");
-	refresh();
-	sleep(1);
-	clear();
-
-	struct fleet myfleet;
-	size_t fleetsize = 20;
-	init_fleet(&myfleet, fleetsize);
-
-	bool quit = FALSE;
-	bool msg = FALSE;
-	int key = 0;
-	while(quit == FALSE){
-		update_bounds(&myfleet);
-
-		key = getch();
-		if (key == 'q'){
-			quit = TRUE;
-		}
-		else if (key == ' '){
-			update_fleet(&myfleet);
-		} else{
-			msg = TRUE;
-		}
-
-		clear();
-		box(stdscr, '|', '-');
-
-		touchwin(stdscr); // yay inefficiency
-		box(game, '*', '*'); // box for the game
-		wrefresh(game);
-
-		mvprintw(SCREEN_MIN_H +10, SCREEN_MIN_W, "*"); //include borders
-		mvprintw(SCREEN_MIN_H + 10, SCREEN_MAX_W, "*");
-		mvprintw(SCREEN_MIN_H - 1, 0, "leftbd: %d rightbd: %d", myfleet.left_bound, myfleet.right_bound);
-		if (msg == TRUE){
-			mvprintw(0, 0, "Invalid key");
-			msg = FALSE;
-		}
-		draw_fleet(&myfleet);
-		refresh();
-
-	}
-endwin();
-return 0;
-
 }
