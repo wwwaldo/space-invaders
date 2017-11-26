@@ -12,8 +12,14 @@ ncurses should also be available on Mac OS and other Linux distributions.
 Just type 'make' at your terminal from the install directory once ncurses is installed :).
 To run the program, type './space_invaders'.
 
-## Who, what, when, why, etc.
+## About
 I this from scratch in C over a weekend, partly for fun and partly for an interview.
 
 As an FYI, there's a widely-available ASCII space invaders on Ubuntu: <http://manpages.ubuntu.com/manpages/artful/man6/open-invaders.6.html>
+
+## TODO
+* ability for player to fire bullets
+* scorekeeping
+* nicer alien sprites
+* speedup alien movement to enhance drama
 
