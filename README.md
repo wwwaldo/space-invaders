@@ -1,7 +1,7 @@
 # Space Invaders
 ASCII space invaders you can play on a *NIX terminal.
 
-![](libigl-teaser.png)
+![](menu-screenshot.png)
 
 ## Prerequisites
 You should have the ncurses library installed. On Ubuntu, install with:
