@@ -1,6 +1,7 @@
 // Keep track of screen stats.
 
 #ifndef _INVADERS_GAME_H
+
 #define _INVADERS_GAME_H
 
 #include <ncurses.h>

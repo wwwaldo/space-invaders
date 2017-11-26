@@ -1,5 +1,27 @@
 #include "game.h"
 
+/********************* ASCII assets, heyo! ***********************************/
+
+char *title_text[6] = {
+" ____                         ___                     _                ",
+"/ ___| _ __   __ _  ___ ___  |_ _|_ ____   ____ _  __| | ___ _ __ ___  ",
+"\\___ \\| '_ \\ / _` |/ __/ _ \\  | || '_ \\ \\ / / _` |/ _` |/ _ \\ '__/ __| ",
+" ___) | |_) | (_| | (_|  __/  | || | | \\ V / (_| | (_| |  __/ |  \\__ \\ ",
+"|____/| .__/ \\__,_|\\___\\___| |___|_| |_|\\_/ \\__,_|\\__,_|\\___|_|  |___/ ",
+"      |_|                                                              "
+};
+
+char *game_over_banner[6] = {
+"  ____                         ___                 ",
+" / ___| __ _ _ __ ___   ___   / _ \\__   _____ _ __ ",
+"| |  _ / _` | '_ ` _ \\ / _ \\ | | | \\ \\ / / _ \\ '__|",
+"| |_| | (_| | | | | | |  __/ | |_| |\\ V /  __/ |   ",
+" \\____|\\__,_|_| |_| |_|\\___|  \\___/  \\_/ \\___|_|   ",
+"                                                   "
+};
+
+/************************* End ASCII assets ***********************************/
+
 // get keyboard input from the user and act accordingly.
 void user_response(WINDOW *game_scr, struct player *p){
 	int key = wgetch(game_scr);
@@ -12,6 +34,7 @@ void user_response(WINDOW *game_scr, struct player *p){
 			break;
 		case ' ':
 			player_shoot(p);
+			break;
 		case 'q': // quit the game
 			endwin();
 			exit(0);
@@ -33,15 +56,19 @@ void display_start_menu(WINDOW *mywin){
 	int win_y = 0; int win_x = 0;
 	getmaxyx(mywin, win_y, win_x);
 
-	char *intro_text[5] = {
-		"Space Invaders!",
+	// doing this in the main window
+	for (int i = 0; i < 6; i++){
+		mvwprintw(stdscr, i + 1, 3, "%s", title_text[i]);
+	}
+
+	char *intro_text[4] = {
 		"Author: Caroline Lin (2017)",
 		"Instructions: LEFT and RIGHT arrow keys to move.",
 		"Press SPACE to shoot. Press 'q' to quit the game.",
 		"Press SPACE to begin the game."
 	};
 
-	for (int i = 0; i < 5; i++){
+	for (int i = 0; i < 4; i++){
 		mvwprintw(mywin, i + (win_y / 2) - 5, (win_x / 2) - 23, "%s", intro_text[i]);
 	}
 
@@ -55,6 +82,9 @@ void display_start_menu(WINDOW *mywin){
 		key = wgetch(mywin);
 		if (key == ' '){
 			nodelay(mywin, TRUE); // disable block on user input
+			wclear(mywin); // clear the window now.
+			wclear(stdscr);
+			refresh();
 			return;
 		} else if (key == 'q'){
 			endwin();
@@ -66,14 +96,42 @@ void display_start_menu(WINDOW *mywin){
 }
 
 // check for a game-over. Return TRUE if the end is near.
-bool check_game_over(struct player *p, struct fleet *aliens){
-	//TODO
-	return FALSE;
+bool check_game_over(struct player *p, struct fleet *fleet){
+	bool game_over = FALSE;
+	for (int i = 0; i < fleet->fleetsize ; i++){
+		if (fleet->aliens[i].y == SCREEN_MAX_H){
+			game_over = TRUE;
+			break;
+		}
+	}
+	return game_over;
 }
 
 // display the game over menu.
 void display_game_over(WINDOW * game_win, int score){
-	//TODO
+	wclear(game_win);
+	int win_y = 0; int win_x = 0;
+	getmaxyx(game_win, win_y, win_x);
+
+	for (int i = 0; i < 6; i++)
+		mvwprintw(game_win, i + 1, (win_x / 2) - 28, "%s", game_over_banner[i]);
+	mvwprintw(game_win, SCREEN_MAX_H, (win_x / 2) - 10, "FINAL SCORE: %d", score);
+
+	touchwin(stdscr);
+	wrefresh(game_win);
+
+	// yet another check for quit key
+	bool quit = FALSE;
+	nodelay(game_win, FALSE); // enable block on user input
+	int key = 0;
+	while(quit == FALSE){
+		key = wgetch(game_win);
+		if (key == 'q'){
+			endwin();
+			exit(0);
+		}
+		sleep(1); // eh?
+	}
 	return;
 }
 
