@@ -15,7 +15,7 @@ Just type 'make' at your terminal from the install directory once ncurses is ins
 To run the program, type './space_invaders'.
 
 ## About
-I this from scratch in C over a weekend, partly for fun and partly for an interview.
+I wrote this from scratch in C over a weekend, partly for fun and partly for an interview.
 
 As an FYI, there's a widely-available ASCII space invaders on Ubuntu: <http://manpages.ubuntu.com/manpages/artful/man6/open-invaders.6.html>
 
