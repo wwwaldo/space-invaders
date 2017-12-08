@@ -20,8 +20,6 @@ I wrote this from scratch in C over a weekend, partly for fun and partly for an 
 As an FYI, there's a widely-available ASCII space invaders on Ubuntu: <http://manpages.ubuntu.com/manpages/artful/man6/open-invaders.6.html>
 
 ## TODO
-* ability for player to fire bullets
-* scorekeeping
 * nicer alien sprites
-* speedup alien movement to enhance drama
+* speedup alien movement as aliens move closer to player
 
