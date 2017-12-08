@@ -15,7 +15,6 @@ void init_player(struct player *p){
 
 // event where the player shoots a bullet.
 void player_shoot(struct player *p){
-	// TODO
 	// update the coordinates of the bullet to the player
 	p->b->x = p->x;
 	p->b->y = p->y - 1;
@@ -29,8 +28,6 @@ void player_shoot(struct player *p){
 // hit. Return the increase in the score.
 int update_bullet(struct player *p, struct fleet *aliens){
 	int incr = 0;
-
-	// TODO
 	// call this only if the bullet is currently visible
 
 	if (p->b->y < SCREEN_MIN_H){

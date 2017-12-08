@@ -20,6 +20,15 @@ char *game_over_banner[6] = {
 "                                                   "
 };
 
+char *win_banner[6] = {
+"	__     __                               _ 				",
+"\\ \\   / /                              | |				",
+" \\ \\_/ /__  _   _  __      _____  _ __ | |				",
+"  \\   / _ \\| | | | \\ \\ /\\ / / _ \\| '_ \\| |	",
+"   | | (_) | |_| |  \\ V  V / (_) | | | |_|				",
+"   |_|\\___/ \\__,_|   \\_/\\_/ \\___/|_| |_(_)		"
+};
+
 /************************* End ASCII assets ***********************************/
 
 // get keyboard input from the user and act accordingly.
@@ -135,6 +144,48 @@ void display_game_over(WINDOW * game_win, int score){
 	return;
 }
 
+// check for a win -- ie. if all the aliens are gone.
+bool check_win(struct fleet *fleet){
+	bool win = TRUE;
+	for (int i = 0; i < fleet->fleetsize ; i++){
+		if (fleet->aliens[i].hit == FALSE){
+			win = FALSE;
+			break;
+		}
+	}
+	return win;
+}
+
+// display the win menu.
+// literally the same as the game over menu, next time just modify the
+// display *** menu
+void display_win(WINDOW * game_win, int score){
+	wclear(game_win);
+	int win_y = 0; int win_x = 0;
+	getmaxyx(game_win, win_y, win_x);
+
+	for (int i = 0; i < 6; i++)
+		mvwprintw(game_win, i + 1, (win_x / 2) - 28, "%s", win_banner[i]);
+	mvwprintw(game_win, SCREEN_MAX_H, (win_x / 2) - 10, "FINAL SCORE: %d", score);
+
+	touchwin(stdscr);
+	wrefresh(game_win);
+
+	// yet another check for quit key
+	bool quit = FALSE;
+	nodelay(game_win, FALSE); // enable block on user input
+	int key = 0;
+	while(quit == FALSE){
+		key = wgetch(game_win);
+		if (key == 'q'){
+			endwin();
+			exit(0);
+		}
+		sleep(1); // eh?
+	}
+	return;
+}
+
 
 int main(){
 	initscr();
@@ -184,6 +235,9 @@ int main(){
 
 		if (check_game_over(&myship, &myfleet) == TRUE){
 			display_game_over(game_win, myscore);
+		}
+		else if (check_win(&myfleet) == TRUE){
+			display_win(game_win, myscore);
 		} else{
 			// draw player and fleet
 			draw_player(game_win, &myship);
