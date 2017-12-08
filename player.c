@@ -17,7 +17,11 @@ void init_player(struct player *p){
 void player_shoot(struct player *p){
 	// TODO
 	// update the coordinates of the bullet to the player
+	p->b->x = p->x;
+	p->b->y = p->y - 1;
+
 	// and set the bullet to be visible
+	p->b->visible = TRUE;
 	return;
 }
 
@@ -29,12 +33,27 @@ int update_bullet(struct player *p, struct fleet *aliens){
 	// TODO
 	// call this only if the bullet is currently visible
 
-	// iterate through the aliens to see if someone has been hit
-	// if hit, update alien array and set bullet to invisible
-	// also set incr to 100 or whatever you want the score to increase by
+	if (p->b->y < SCREEN_MIN_H){
+		p->b->visible = FALSE;
+		return incr;
+	}
 
-	// if no hit, update the bullet's xy coordinates as usual
-	// if the bullet is offscreen, set bullet to invisible
+	// update the bullet's position
+	p->b->y--;
+
+	if (p->b->visible == TRUE){
+		// iterate through the aliens to see if someone has been hit
+		// if hit, update alien array and set bullet to invisible
+		// also set incr to 100 or whatever you want the score to increase by
+		for (int i = 0; i < aliens->fleetsize; i++){
+			if (aliens->aliens[i].x == p->b->x && aliens->aliens[i].y == p->b->y){
+				aliens->aliens[i].hit = TRUE;
+				p->b->visible = FALSE;
+				incr = 100;
+				break;
+			}
+		}
+	}
 
 	return incr;
 }
