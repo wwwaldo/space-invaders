@@ -47,10 +47,12 @@ int update_bullet(struct player *p, struct fleet *aliens){
 		// also set incr to 100 or whatever you want the score to increase by
 		for (int i = 0; i < aliens->fleetsize; i++){
 			if (aliens->aliens[i].x == p->b->x && aliens->aliens[i].y == p->b->y){
-				aliens->aliens[i].hit = TRUE;
-				p->b->visible = FALSE;
-				incr = 100;
-				break;
+				if (aliens->aliens[i].hit == FALSE){
+					aliens->aliens[i].hit = TRUE;
+					p->b->visible = FALSE;
+					incr = 100;
+					break;
+				}
 			}
 		}
 	}
